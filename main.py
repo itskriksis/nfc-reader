@@ -1,26 +1,16 @@
-import nfc
-import binascii
+import android
 
-def on_connect(tag):
-    print("Card connected:")
-    print(tag)
+def on_new_intent(intent):
+    extras = intent.getExtras()
+    if extras and extras.containsKey('android.nfc.extra.TAG'):
+        tag = extras.get('android.nfc.extra.TAG')
+        print("Card detected:", tag)
 
-def on_release(tag):
-    print("Card released")
-
-def read_card(tag):
-    print("Reeading card data:")
-    print("UID:", binascii.hexlify(tag.identifier).decode('utf-8'))
-
-def main():
-    with nfc.ContactlessFrontend('usb') as clf:
-        print("NFC readeer initialized. Press Ctrl-C to exit.")
-        clf.connect(rdwr={'on-connect': on_connect, 'on-release': on_release, 'on-startup': read_card})
-        try:
-            while True:
-                pass
-        except KeyboardInterrupt:
-            pass
-
-if __name__ == "__main__":
-    main()
+droid = android.Android()
+droid.makeToast("Bring an NFC card close to the phone's NFC sensor.")
+droid.startTrackingNFC()
+while True:
+    event = droid.eventPoll(1).result
+    if event and event['name'] == 'new_intent':
+        intent = event['data']
+        on_new_intent(intent)
